@@ -113,6 +113,7 @@ module Thin
           opts.on("-O", "--onebyone", "Restart the cluster one by one (only works with restart command)") { @options[:onebyone] = true }
           opts.on("-X", "--xbyx NUM", "Restart the cluster in batches up to X servers at a time (only works with restart command)") { |num| @options[:xbyx] = num.to_i }
           opts.on("-w", "--wait NUM", "Maximum wait time for server to be started in seconds (use with -O)") { |time| @options[:wait] = time.to_i }
+          opts.on(      "--sleep NUM", "Sleep x seconds after receive start ACK to let the server breathe the time the application finishing initializing") { |num| @options[:sleep] = num.to_i }
         end
 
         opts.separator ""

@@ -12,7 +12,7 @@ module Thin
     class Cluster < Controller
       # Cluster only options that should not be passed in the command sent
       # to the indiviual servers.
-      CLUSTER_OPTIONS = [:servers, :only, :onebyone, :xbyx, :wait]
+      CLUSTER_OPTIONS = [:servers, :only, :onebyone, :xbyx, :sleep, :wait]
       
       # Maximum wait time for the server to be restarted
       DEFAULT_WAIT_TIME = 30    # seconds
@@ -33,6 +33,7 @@ module Thin
       def only;       @options[:only]     end
       def onebyone;   @options[:onebyone] end
       def xbyx;       @options[:xbyx]     end
+      def sleep_sec;  @options[:sleep]    end
       def wait;       @options[:wait]     end
       
       def swiftiply?
@@ -72,6 +73,7 @@ module Thin
             sleep 0.1 # Let's breath a bit shall we ?
             start_server(n)
             wait_until_server_started(n)
+            take_a_nap
           end           
         elsif !xbyx.nil? and xbyx > 0
           #Stop up to xbyx servers at a time in the cluster, then start them.
@@ -94,6 +96,7 @@ module Thin
             bq.each do |server|
               start_server(server)
             end
+            take_a_nap
           end
         else
           # Let's do a normal restart by default
@@ -111,6 +114,16 @@ module Thin
         end
       rescue
         nil
+      end
+
+      def take_a_nap
+        if !sleep_sec.nil? && sleep_sec > 0
+          log_info "Take a nap of #{sleep_sec} sec. to let worker application finish initialization stuff ..."
+          STDOUT.flush # Need this to make sure user got the message
+          sleep sleep_sec
+          log_info "Stop sleeping, let's go back to work !"
+          STDOUT.flush # Need this to make sure user got the message
+        end
       end
       
       # Make sure the server is running before moving on to the next one.
